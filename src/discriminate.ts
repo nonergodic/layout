@@ -3,13 +3,35 @@ import { serializeNum, getCachedSerializedFrom } from "./serialize";
 import { isNumType, isBytesType, isFixedBytesConversion } from "./utils";
 import { calcStaticLayoutSize } from "./size";
 
-//defining a bunch of types for readability
+type LayoutIndex = number;
+
+export type Discriminator<B extends boolean = false> =
+  (encoded: BytesType) => B extends false ? LayoutIndex | null : readonly LayoutIndex[];
+
+export function buildDiscriminator<B extends boolean = false>(
+  layouts: readonly Layout[],
+  allowAmbiguous?: B
+): Discriminator<B> {
+  const [distinguishable, discriminator] = internalBuildDiscriminator(layouts);
+  if (!distinguishable && !allowAmbiguous)
+    throw new Error("Cannot uniquely distinguished the given layouts");
+
+  return (
+    !allowAmbiguous
+    ? (encoded: BytesType) => {
+      const layout = discriminator(encoded);
+      return layout.length === 0 ? null : layout[0];
+    }
+    : discriminator
+  ) as Discriminator<B>;
+}
+
+//private type defs
 type Uint = number;
 type Bitset = bigint;
 type Size = Uint;
 type BytePos = Uint;
 type ByteVal = Uint; //actually a uint8
-type LayoutIndex = Uint;
 type Candidates = Bitset;
 type FixedBytes = (readonly [BytePos, BytesType])[];
 //using a Bounds type (even though currently the upper bound can only either be equal to the lower
@@ -295,9 +317,9 @@ function buildAscendingBounds(sortedBounds: readonly (readonly [Bounds, LayoutIn
 //  multiples, and their arbitrary composition which would be massively more complicated and
 //  also pointless in the general case because we'd have to figure out whether a given size can be
 //  expressed as some combination of offsets and array size multiples in which case it's almost
-//  certainly computaionally cheaper to simply attempt to deserialize the given given data for the
+//  certainly computationally cheaper to simply attempt to deserialize the given given data for the
 //  respective layout.
-function generateLayoutDiscriminator(
+function internalBuildDiscriminator(
   layouts: readonly Layout[]
 ): [boolean, (encoded: BytesType) => readonly LayoutIndex[]] {
   //for debug output:
@@ -592,22 +614,4 @@ function generateLayoutDiscriminator(
     // console.log("final candidates", candStr(candidates));
     return bitsetToArray(candidates);
   }];
-}
-
-export function buildDiscriminator<B extends boolean = false>(
-  layouts: readonly Layout[],
-  allowAmbiguous?: B
-) {
-  const [distinguishable, discriminator] = generateLayoutDiscriminator(layouts);
-  if (!distinguishable && !allowAmbiguous)
-    throw new Error("Cannot uniquely distinguished the given layouts");
-
-  return (
-    !allowAmbiguous
-    ? (encoded: BytesType) => {
-      const layout = discriminator(encoded);
-      return layout.length === 0 ? null : layout[0];
-    }
-    : discriminator
-  ) as (encoded: BytesType) => B extends false ? LayoutIndex | null : readonly LayoutIndex[];
 }

@@ -89,9 +89,11 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
           item.layout,
           custom === undefined
           ? data
-          : typeof custom.from === "function"
+          : typeof custom.from !== "function"
+          ? custom.from
+          : data !== undefined
           ? storeInCache(custom.from(data))
-          : custom.from,
+          : undefined,
           bytesConversions
         );
         if (layoutSize === null)
@@ -108,10 +110,13 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
         return lengthSize + custom.from.length; //assumed to equal item.size if it exists
 
       if (custom === undefined)
-        return data ? lengthSize + checkItemSize(item, data.length) : null;
+        return data !== undefined ? lengthSize + checkItemSize(item, data.length) : null;
 
-      const cachedFrom = storeInCache(custom.from(data));
-      return data !== undefined ? lengthSize + checkItemSize(item, cachedFrom.length) : null;
+      return (
+        data !== undefined
+        ? lengthSize + checkItemSize(item, storeInCache(custom.from(data)).length)
+        : null
+      );
     }
     case "array": {
       const length = "length" in item ? item.length : undefined;

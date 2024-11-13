@@ -46,10 +46,19 @@ export function calcSize<const L extends Layout>(layout: L, data: DeriveType<L>)
 // ): undefined extends D ? number | null : number;
 //so we're stuck with having to use to separate names
 export function calcStaticSize(layout: Layout): number | null {
-  return internalCalcSize(layout);
+  return internalCalcSize(layout, staticCalc);
 }
 
 // --- implementation ---
+
+//The implementation here shares code for calcSize and calcStaticSize. It's slightly less efficient
+//  from a runtime PoV but it avoids what would effectively be code duplication.
+//Since `undefined` is a valid "to" type for custom conversions, it can be a valid value for data.
+//  Therefore, we can't use it to differentiate between calcSize and calcStaticSize, where in the
+//  former we know that data will adhere to the layout, while in the latter data will not exist.
+//So, to mark data as "does not exist", i.e. we are in the static calc version, we use a
+//  local (and hence unique) symbol instead.
+const staticCalc = Symbol("staticCalc");
 
 //stores the results of custom.from calls for bytes items to avoid duplicated effort upon
 //  subsequent serialization
@@ -89,11 +98,9 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
           item.layout,
           custom === undefined
           ? data
-          : typeof custom.from !== "function"
-          ? custom.from
-          : data !== undefined
-          ? storeInCache(custom.from(data))
-          : undefined,
+          : typeof custom.from === "function"
+          ? (data !== staticCalc ? storeInCache(custom.from(data)) : staticCalc)
+          : custom.from, //flex layout bytes only allows conversions, not fixed values
           bytesConversions
         );
         if (layoutSize === null)
@@ -110,23 +117,20 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
         return lengthSize + custom.from.length; //assumed to equal item.size if it exists
 
       if (custom === undefined)
-        return data !== undefined ? lengthSize + checkItemSize(item, data.length) : null;
+        return data !== staticCalc ? lengthSize + checkItemSize(item, data.length) : null;
 
       return (
-        data !== undefined
+        data !== staticCalc
         ? lengthSize + checkItemSize(item, storeInCache(custom.from(data)).length)
         : null
       );
     }
     case "array": {
       const length = "length" in item ? item.length : undefined;
-      if (data === undefined) {
+      if (data === staticCalc) {
         if (length !== undefined) {
-          const layoutSize = internalCalcSize(item.layout, undefined, bytesConversions);
-          if (layoutSize === null)
-            return null;
-
-          return length * layoutSize;
+          const layoutSize = internalCalcSize(item.layout, staticCalc, bytesConversions);
+          return layoutSize !== null ? length * layoutSize: null;
         }
         return null;
       }
@@ -150,7 +154,7 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
       return size;
     }
     case "switch": {
-      if (data !== undefined) {
+      if (data !== staticCalc) {
         const [_, layout] = findIdLayoutPair(item, data);
         const layoutSize = internalCalcSize(layout, data, bytesConversions);
         return layoutSize !== null ? item.idSize + layoutSize : null;
@@ -158,7 +162,7 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
 
       let size: number | null = null;
       for (const [_, layout] of item.layouts) {
-        const layoutSize = internalCalcSize(layout, undefined, bytesConversions);
+        const layoutSize = internalCalcSize(layout, staticCalc, bytesConversions);
         if (size === null)
           size = layoutSize;
         else if (layoutSize !== size)
@@ -169,24 +173,25 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
   }
 }
 
-function internalCalcSize(layout: Layout, data?: any, bytesConversions?: any[]): number | null {
+function internalCalcSize(layout: Layout, data: any, bytesConversions?: any[]): number | null {
   if (isItem(layout))
     return calcItemSize(layout as Item, data, bytesConversions);
 
   let size = 0;
   for (const item of layout) {
     let itemData;
-    if (data)
-      if (!("omit" in item) || !item.omit) {
-        if (!(item.name in data))
-          throw new Error(`missing data for layout item: ${item.name}`);
+    if (data === staticCalc)
+      itemData = staticCalc;
+    else if (!("omit" in item) || !item.omit) {
+      if (!(item.name in data))
+        throw new Error(`missing data for layout item: ${item.name}`);
 
-        itemData = data[item.name];
-      }
+      itemData = data[item.name];
+    }
 
     const itemSize = calcItemSize(item, itemData, bytesConversions);
     if (itemSize === null) {
-      if (data !== undefined)
+      if (data !== staticCalc)
         throw new Error(`coding error: couldn't calculate size for layout item: ${item.name}`);
 
       return null;

@@ -1,5 +1,7 @@
 # Layout Library
 
+[![npm version](https://img.shields.io/npm/v/binary-layout.svg)](https://www.npmjs.com/package/binary-layout)
+
 The Layout library implements a TypeScript-native, declarative DSL for binary data serialization/deserialization that supports strong typing and efficient, automatic discrimination of data formats.
 
 A must-have for anyone unfortunate enough to work with binary data in TypeScript.

@@ -62,6 +62,27 @@ export const customizableBytes = <
   })()
 } as CustomizableBytesReturn<B, C>);
 
+//-------------------------------- boolItem --------------------------------
+
+export function boolItem(permissive: boolean = false) {
+  return {
+    binary: "uint",
+    size: 1,
+    custom: {
+      to: (encoded: number): boolean => {
+        if (encoded === 0)
+          return false;
+
+        if (permissive || encoded === 1)
+          return true;
+
+        throw new Error(`Invalid bool value: ${encoded}`);
+      },
+      from: (value: boolean): number => value ? 1 : 0,
+    }
+  } as const;
+}
+
 //-------------------------------- enumItem --------------------------------
 
 export function enumItem<

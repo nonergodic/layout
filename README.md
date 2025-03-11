@@ -522,11 +522,26 @@ DeriveType<typeof dateArrayPacketLayout>["payload"];
 //=> Set<number>
 ```
 
+### Bool Item
+
+Converts a boolean into a single byte.
+
+Implemented via a *uint* item. Strict by default, i.e. only accepts 1 and 0 as the valid values, but can be set to be permissive so any non-zero value counts as true.
+
+```typescript
+const strictBool = boolItem();
+const permissiveBool = boolItem(true);
+deserialize(strictBool, new Uint8Array([2]));
+//=> throws
+deserialize(permissiveBool, new Uint8Array([2]));
+//=> true
+```
+
 ### Enum Item
 
 Converts a set of string values into their associated numeric values.
 
-Implement via a *uint* item. Default size is 1, default endianness is big.
+Implemented via a *uint* item. Default size is 1, default endianness is big.
 
 ```typescript
 const myEnumItem = enumItem([["foo", 1], ["bar", 3]], { size: 2, endianness: "little" });

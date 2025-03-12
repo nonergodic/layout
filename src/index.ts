@@ -1,4 +1,7 @@
 export type {
+  Item,
+  NamedItem,
+  ProperLayout,
   Layout,
   DeriveType,
   FixedConversion,

@@ -59,7 +59,7 @@ export const checkBytesTypeEqual = (
   data: BytesType,
   opts?: {
     customSlice?: number | readonly [number, number];
-    dataSlize?: number | readonly [number, number];
+    dataSlice?: number | readonly [number, number];
   }): void => {
   const toSlice = (bytes: BytesType, slice?: number | readonly [number, number]) =>
     slice === undefined
@@ -69,7 +69,7 @@ export const checkBytesTypeEqual = (
       : [slice, bytes.length] as const;
 
   const [customStart, customEnd] = toSlice(custom, opts?.customSlice);
-  const [dataStart, dataEnd] = toSlice(data, opts?.dataSlize);
+  const [dataStart, dataEnd] = toSlice(data, opts?.dataSlice);
   const length = customEnd - customStart;
   checkSize(length, dataEnd - dataStart);
 

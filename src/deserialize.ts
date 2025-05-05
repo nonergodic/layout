@@ -141,7 +141,7 @@ function deserializeItem(item: Item, encoded: BytesChunk): any {
             checkBytesTypeEqual(
               getCachedSerializedFrom(item as any),
               encoded.bytes,
-              {dataSlize: [offset, encoded.offset]}
+              {dataSlice: [offset, encoded.offset]}
             );
             return custom.to;
           }

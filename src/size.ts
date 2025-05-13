@@ -89,6 +89,9 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
     case "uint":
       return item.size;
     case "bytes": {
+      if ("size" in item && data === staticCalc)
+        return item.size;
+
       //items only have a size or a lengthSize, never both
       const lengthSize = ("lengthSize" in item) ? item.lengthSize | 0 : 0;
 
@@ -116,13 +119,14 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
       if (isFixedBytesConversion(custom))
         return lengthSize + custom.from.length; //assumed to equal item.size if it exists
 
-      if (custom === undefined)
-        return data !== staticCalc ? lengthSize + checkItemSize(item, data.length) : null;
+      if (data === staticCalc)
+        return null;
 
-      return (
-        data !== staticCalc
-        ? lengthSize + checkItemSize(item, storeInCache(custom.from(data)).length)
-        : null
+      return lengthSize + checkItemSize(
+        item,
+        custom !== undefined
+        ? storeInCache(custom.from(data)).length
+        : data.length
       );
     }
     case "array": {

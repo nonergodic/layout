@@ -1,6 +1,6 @@
 import type { Layout, Item, LengthPrefixed, BytesType } from "./layout";
 import { serializeNum, getCachedSerializedFrom } from "./serialize";
-import { isNumType, isBytesType, isFixedBytesConversion } from "./utils";
+import { isNumType, isBytesType, isFixedBytesConversion, bytesItemHasLayout } from "./utils";
 import { calcStaticSize } from "./size";
 
 type LayoutIndex = number;
@@ -92,7 +92,7 @@ function layoutItemMeta(
 
       let fixed;
       let fixedSize;
-      if ("layout" in item) {
+      if (bytesItemHasLayout(item)) {
         const { custom } = item;
         if (custom !== undefined && typeof custom.from !== "function") {
           fixed = getCachedSerializedFrom(item as any);
@@ -138,7 +138,7 @@ function layoutItemMeta(
         ? [item.size, item.size] as Bounds
         : undefined;
 
-      if ("layout" in item) {
+      if (bytesItemHasLayout(item)) {
         const lm = createLayoutMeta(item.layout, offset, fixedBytes)
         return ret ?? [lengthSize + lm[0], lengthSize + lm[1]];
       }
@@ -180,7 +180,11 @@ function layoutItemMeta(
           serializeNum(idVal, idSize, cursor, idEndianness);
           caseFixedBytes[caseIndex]!.push([0, cursor.bytes]);
         }
-        const ret = createLayoutMeta(layout, offset !== null ? idSize : null, caseFixedBytes[caseIndex]!);
+        const ret = createLayoutMeta(
+          layout,
+          offset !== null ? idSize : null,
+          caseFixedBytes[caseIndex]!
+        );
         return [ret[0] + idSize, ret[1] + idSize] as Bounds;
       });
 

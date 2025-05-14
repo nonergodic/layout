@@ -14,7 +14,7 @@ import type {
   CustomConversion,
 } from "./layout";
 
-import { isPrimitiveType, isItem, isFixedPrimitiveConversion } from "./utils";
+import { isPrimitiveType, isItem, isFixedPrimitiveConversion, bytesItemHasLayout } from "./utils";
 
 export type FixedItemsOf<L extends Layout> = StartFilterItemsOf<L, true>;
 export type DynamicItemsOf<L extends Layout> = StartFilterItemsOf<L, false>;
@@ -102,7 +102,7 @@ function filterItem(item: Item, fixed: boolean): Item | null {
   switch (item.binary) {
     // @ts-ignore - fallthrough is intentional
     case "bytes": {
-      if ("layout" in item) {
+      if (bytesItemHasLayout(item)) {
         const { custom } = item;
         if (custom === undefined) {
           const { layout } = item;
@@ -169,7 +169,7 @@ function internalAddFixedValuesItem(item: Item, dynamicValue: any): any {
   switch (item.binary) {
     // @ts-ignore - fallthrough is intentional
     case "bytes": {
-      if ("layout" in item) {
+      if (bytesItemHasLayout(item)) {
         const { custom } = item;
         if (custom === undefined || typeof custom.from !== "function")
           return internalAddFixedValues(item.layout, custom ? custom.from : dynamicValue);

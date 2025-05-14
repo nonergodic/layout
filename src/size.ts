@@ -9,6 +9,7 @@ import {
   isItem,
   isFixedBytesConversion,
   checkItemSize,
+  bytesItemHasLayout,
 } from "./utils";
 
 export function calcSize<const L extends Layout>(layout: L, data: DeriveType<L>): number {
@@ -95,7 +96,7 @@ function calcItemSize(item: Item, data: any, bytesConversions?: any[]): number |
       //items only have a size or a lengthSize, never both
       const lengthSize = ("lengthSize" in item) ? item.lengthSize | 0 : 0;
 
-      if ("layout" in item) {
+      if (bytesItemHasLayout(item)) {
         const { custom } = item;
         const layoutSize = internalCalcSize(
           item.layout,

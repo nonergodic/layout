@@ -5,7 +5,10 @@ import type {
   FixedConversion,
   NumType,
   BytesType,
-  PrimitiveType
+  PrimitiveType,
+  FlexLayoutBytes,
+  LengthPrefixedLayoutBytes,
+  ManualSizeLayoutBytes,
 } from "./layout";
 import { binaryLiterals } from "./layout";
 
@@ -45,6 +48,38 @@ export const checkSize = (layoutSize: number, dataSize: number): number => {
 
   return dataSize;
 }
+
+//In a better world, we wouldn't need this type guard and could just check for "layout" in bytesItem
+//  directly because no layout item actually allows for its layout property (if it has one) to be
+//  `undefined`.
+//
+//The problem arises in how TypeScript checks `satisfies` constraints that involve unions:
+//Consider:
+//```
+//const shouldBeIllegal = {
+//  binary: "bytes", layout: undefined,
+//} as const satisfies FlexPureBytes | FlexLayoutBytes;
+//```
+//
+//This should be illegal because `FlexPureBytes` does not specify a layout property, so its
+//  specification would be excessive and `FlexLayoutBytes` does not allow for its `layout` property
+//  to be `undefined`.
+//But when checking a `satisfies` constraint of unions of interfaces, excessive properties are
+//  actually ignored and so the `satisfies` constraint will be considered fulfilled, even though it
+//  neither member of the union by itself satisfies it - how utterly counterintuitive.
+//
+//Given that it is fairly natural - though strictly speaking incorrect - to write the following:
+//```
+//const someBytesTemplate = <const L extends Layout | undefined = undefined>(layout?: L) => ({
+//  binary: "bytes", layout: layout as L,
+//} as const satisfies Item);
+//```
+//and because TypeScript fails to alert us that it does in fact not satisfy any bytes item at all,
+//  we instead introduce an additional check in our implementation that not only is a layout
+//  property present but that it is also not `undefined`.
+export const bytesItemHasLayout = (bytesItem: { readonly binary: "bytes" }):
+  bytesItem is FlexLayoutBytes | ManualSizeLayoutBytes | LengthPrefixedLayoutBytes =>
+    "layout" in bytesItem && bytesItem.layout !== undefined;
 
 export const checkItemSize = (item: any, dataSize: number): number =>
   ("size" in item && item.size !== undefined) ? checkSize(item.size, dataSize) : dataSize;

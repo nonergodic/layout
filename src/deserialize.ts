@@ -16,6 +16,7 @@ import {
   isFixedBytesConversion,
   checkBytesTypeEqual,
   checkNumEquals,
+  bytesItemHasLayout,
 } from "./utils";
 import { getCachedSerializedFrom } from "./serialize";
 
@@ -120,7 +121,7 @@ function deserializeItem(item: Item, encoded: BytesChunk): any {
         ? deserializeNum(encoded, item.lengthSize, item.lengthEndianness)
         : (item as {size?: number})?.size;
 
-      if ("layout" in item) { //handle layout conversions
+      if (bytesItemHasLayout(item)) { //handle layout conversions
         const { custom } = item;
         const offset = encoded.offset;
         let layoutData;

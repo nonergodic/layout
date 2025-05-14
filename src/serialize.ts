@@ -24,6 +24,7 @@ import {
   isItem,
   isNumType,
   isBytesType,
+  bytesItemHasLayout,
 } from "./utils";
 
 type Cursor = {
@@ -143,7 +144,7 @@ function serializeItem(item: Item, data: any, cursor: Cursor, bcq: BytesConversi
       if ("lengthSize" in item && item.lengthSize !== undefined)
         cursor.offset += item.lengthSize;
 
-      if ("layout" in item) {
+      if (bytesItemHasLayout(item)) {
         const { custom } = item;
         let layoutData;
         if (custom === undefined)

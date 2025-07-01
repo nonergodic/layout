@@ -7,7 +7,9 @@ export type {
   FixedConversion,
   CustomConversion,
   Endianness,
+  NumberSize,
 } from "./layout";
+export { numberMaxSize } from "./layout";
 export { serialize } from "./serialize";
 export { deserialize } from "./deserialize";
 export * from "./fixedDynamic";

@@ -16,3 +16,4 @@ export * from "./fixedDynamic";
 export * from "./discriminate";
 export { calcSize, calcStaticSize } from "./size";
 export * from "./items";
+export * from "./setEndianness";

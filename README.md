@@ -590,6 +590,10 @@ There are two utility functions that allow filtering layouts for their fixed and
 
 They are used to implement a third utility function called `addFixedValues` which completes a partial derived type by filling in the missing, required, fixed values of its layout (which were not marked via `omit: true`). This can be useful to e.g. avoid forcing users to specify a fixed version field on every use while still including that version field in the deserialized object.
 
+## SetEndianness Utility
+
+The `setEndianness` utility function recursively sets the endianness of all items of a given layout (and their items, and so on). Useful for when parameterizing all items is a hassle or when an existing layout unexpectedly needs to be used with a different endianness.
+
 ## Limitations
 
 * Does not support circular layout definitions (e.g. can't model `type Dir = (Dir | File)[]`).

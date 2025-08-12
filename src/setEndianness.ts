@@ -45,13 +45,23 @@ function setItemEndianness(item: Item, endianness: Endianness): any {
 }
 
 //reminder: this will not propagate through custom conversions that use layouts themselves!
-export type SetEndianness<L extends Layout, E extends Endianness> = 
-  Layout extends L
-  ? unknown
+//
+//All the "extras" in this type are to tell tsc about type invariants when writing functions
+//  that accept layouts as const generic parameters, otherwise when running e.g. a generic type
+//  like `const L extends ProperLayout` through setEndianness, tsc will fail to realize that the
+//  result is also guaranteed to be a ProperLayout, which sucks for chaining.
+export type SetEndianness<L extends Layout, E extends Endianness> =
+    Layout       extends L ? Layout
+  : ProperLayout extends L ? ProperLayout
+  : Item         extends L ? Item
   : L extends infer LI extends Item
-  ? SetItemEndianness<LI, E>
+  ? SetItemEndianness<LI, E> extends infer R extends Item
+    ? R
+    : never
   : L extends infer P extends ProperLayout
-  ? SetProperLayoutEndianness<P, E>
+  ? SetProperLayoutEndianness<P, E> extends infer R extends ProperLayout
+    ? R
+    : never
   : never;
 
 type SetItemEndianness<I extends Item, E extends Endianness> =

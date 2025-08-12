@@ -99,7 +99,7 @@ describe('Basic Layout Tests', () => {
     expect(encoded).toBeInstanceOf(Uint8Array);
     expect(encoded.length).toBe(layout.lengthSize + value.length);
     const decoded = deserialize(layout, encoded);
-    
+
     expect(decoded).toBe(value);
   });
 });

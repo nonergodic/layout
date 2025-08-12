@@ -281,7 +281,7 @@ serialize(bytesExampleLayout, bytesExample);
 > | ----------- | ------------------- |
 > | `tuple<DT>` | known, fixed length |
 > | `DT[]`      | otherwise           |
-> 
+>
 > Where `DT` is the derived type of the layout property and `tuple<DT>` is a tuple of the given length.
 
 *Array* items allow repetition of a given layout. As [mentioned before](#fundamental-item-types-in-depth), lengths encode counts of the underlying and hence only coincides with size if the underlying requires only a single byte to serialize.
@@ -323,7 +323,7 @@ serialize(stringMapItem, new Map<string, string>([["m", "milli"], ["k", "kilo"]]
 | binary           | `"switch"`                   | mandatory        |
 | idSize           | `1 \| 2 \| 3 \| 4 \| 5 \| 6` | mandatory        |
 | idEndianness     | `"big" \| "little"`          | default: `"big"` |
-| idTag            | `string`                     | default: `"id"`  | 
+| idTag            | `string`                     | default: `"id"`  |
 | layouts          | ✱                            | mandatory        |
 
 ✱ The layouts property is an array of pairs, i.e. tuples with two entries, which specify the variants of the *switch* item. All such pairs must either be of type `[number, ProperLayout]` or of type `[[number, unknown], ProperLayout]`. The second entry `ProperLayout` is an array of named items, i.e. a `Layout` that is not an unnamed item. The first entry is either a plain unsigned integer (the id of the variant), or another pair that contains the id as the first entry and its mapped value (similar to a `FixedConversion`) as its second entry.

@@ -61,12 +61,12 @@ describe('ReadMe Layout Examples', () => {
       to:   (encoded: number) => encoded / 10**decimals,
       from: (decoded: number) => decoded * 10**decimals,
     } as const satisfies CustomConversion<number, number>);
-    
+
     const hexConv = {
       to:   (encoded: bigint) => "0x" + encoded.toString(16),
       from: (decoded: string) => BigInt(decoded),
     } as const satisfies CustomConversion<bigint, string>;
-    
+
     const numericsLayout = [
       { name: "fixedU8",  binary: "uint", size: 1, custom: 42, omit: true  },
       { name: "leI16",    binary: "int",  size: 2, endianness: "little"    },
@@ -74,9 +74,9 @@ describe('ReadMe Layout Examples', () => {
       { name: "fixedDec", binary: "uint", size: 4, custom: fixedDecConv(2) },
       { name: "hexnum",   binary: "uint", size: 9, custom: hexConv         },
     ] as const satisfies Layout;
-    
+
     type Numerics = DeriveType<typeof numericsLayout>;
-    
+
     const numerics: Numerics = {
       leI16:    -2,
       leU64:    258n,
@@ -105,9 +105,9 @@ describe('ReadMe Layout Examples', () => {
       ]},
       { name: "unbounded", binary: "bytes", custom: stringConversion }
     ] as const satisfies Layout;
-    
+
     type BytesExample = DeriveType<typeof bytesExampleLayout>;
-    
+
     const bytesExample: BytesExample = {
       raw: {
         vanilla: new Uint8Array([1, 2, 3]),
@@ -120,7 +120,7 @@ describe('ReadMe Layout Examples', () => {
       unbounded: "utf8",
     };
     const expected = [1, 2, 3, 2, 0, 5, 6, 0, 42, 109, 97, 103, 105, 99, 117, 116, 102, 56];
-    
+
     const encoded = serialize(bytesExampleLayout, bytesExample);
     expect(encoded).toEqual(new Uint8Array(expected));
     expect(deserialize(bytesExampleLayout, encoded)).toEqual(bytesExample);
@@ -130,14 +130,14 @@ describe('ReadMe Layout Examples', () => {
     const stringItem = {
       binary: "bytes", lengthSize: 1, custom: stringConversion
     } as const satisfies Layout;
-    
+
     const entriesItem = {
       binary: "array", layout: { binary: "array", length: 2, layout: stringItem }
     } as const satisfies Layout;
-    
+
     type Entries = DeriveType<typeof entriesItem>;
     //=> [string, string][]
-    
+
     const stringMapItem = {
       binary: "bytes",
       layout: entriesItem,
@@ -149,7 +149,7 @@ describe('ReadMe Layout Examples', () => {
 
     const stringMap = new Map<string, string>([["m", "milli"], ["k", "kilo"]]);
     const expected = [1, 109, 5, 109, 105, 108, 108, 105, 1, 107, 4, 107, 105, 108, 111];
-    
+
     const encoded = serialize(stringMapItem, stringMap);
     expect(encoded).toEqual(new Uint8Array(expected));
     expect(deserialize(stringMapItem, encoded)).toEqual(stringMap);
@@ -169,7 +169,7 @@ describe('ReadMe Layout Examples', () => {
 
     const response: HttpResponse = { statusCode: 200, result: new Uint8Array([0, 42]) };
     const expected = [0, 200, 0, 42];
-    
+
     const encoded = serialize(httpResponseItem, response);
     expect(encoded).toEqual(new Uint8Array(expected));
     expect(deserialize(httpResponseItem, encoded)).toEqual(response);
@@ -185,12 +185,12 @@ describe('ReadMe Layout Examples', () => {
     ],
     { binary: "uint", size: 2 }
   ] as const satisfies [Layout, Layout, Layout];
-  
+
   expect(layouts.map(calcStaticSize)).toEqual([3, 3, 2]);
-  
+
   const discriminator = buildDiscriminator(layouts);
   //=> uses strategy: value of first byte, then size
-  
+
   const discriminated = [
     new Uint8Array([0, 0, 0]),
     new Uint8Array([1, 1, 0]),

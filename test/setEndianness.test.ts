@@ -20,7 +20,7 @@ describe("setEndianness", () => {
       { name: "uint", ...uintItem },
       { name: "int",  ...intItem  },
     ]
-  } as const;
+  } as const satisfies Item;
   const resultLengthSizedArrayItem = {
     ...lengthSizedArrayItem,
     lengthEndianness,
@@ -33,7 +33,7 @@ describe("setEndianness", () => {
   const customBytesItem = customizableBytes({ lengthSize: 2 }, lengthSizedArrayItem);
   const resultCustomizableBytesItem =
     customizableBytes({ lengthSize: 2, lengthEndianness }, resultLengthSizedArrayItem);
-  
+
   //jest compares functions by reference, so we need to do some ugly acrobatics here
   const optItem = optionItem(lengthSizedArrayItem);
   const resultOptItem = {...optItem, layout: { ...optItem.layout, layouts: [
@@ -44,7 +44,7 @@ describe("setEndianness", () => {
   ]}} as const satisfies Item;
 
   const enItem = enumItem([["a", 1], ["b", 2]], { size: 2 });
-  const resultEnItem = { ...enItem, endianness } as const;
+  const resultEnItem = { ...enItem, endianness } as const satisfies Item;
 
   const bitsItem = bitsetItem(["zero", "one", "two", "", "", "", "", "seven", "eight"]);
   const resultBitsItem = { ...bitsItem, endianness } as const satisfies Item;
@@ -68,7 +68,7 @@ describe("setEndianness", () => {
         { name: "bitset", ...bitsItem },
       ]],
     ]
-  } as const;
+  } as const satisfies Item;
   const resultComplexSwitchLayout = {
     ...complexSwitchLayout,
     idEndianness,

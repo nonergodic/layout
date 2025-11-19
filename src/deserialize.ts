@@ -20,7 +20,7 @@ import {
 } from "./utils";
 import { getCachedSerializedFrom } from "./serialize";
 
-type DeserializeReturn<L extends Layout, B extends boolean> =
+export type DeserializeReturn<L extends Layout, B extends boolean> =
   B extends true ? DeriveType<L> : readonly [DeriveType<L>, number];
 
 export function deserialize<const L extends Layout, const B extends boolean = true>(
